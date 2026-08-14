@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
+# ============================================================
+# Frequency Distribution (Absolute & Relative)
+# ============================================================
+
 def plot_categorical_distributions(df: pd.DataFrame, features: list):
     """Plot absolute counts and percentages for specified categorical features in a 2-column grid.
 
@@ -56,7 +60,6 @@ def plot_categorical_distributions(df: pd.DataFrame, features: list):
         ax.set_xlabel(feature, fontsize=10)
         ax.set_ylabel("Number of Customers", fontsize=10)
         ax.tick_params(axis="x", rotation=0)
-        ax.grid(axis="y", linestyle="--", alpha=0.5)
 
         # Add metric text annotations to bars
         for i, label in enumerate(counts.index):
@@ -82,6 +85,10 @@ def plot_categorical_distributions(df: pd.DataFrame, features: list):
     plt.tight_layout()
     plt.show()
 
+
+# ============================================================
+# Churn Rate by Category
+# ============================================================
 
 def plot_categorical_churn_rates(df: pd.DataFrame, features: list, target: str):
     """Plot churn rates for specified categorical features in a 2-column grid.
