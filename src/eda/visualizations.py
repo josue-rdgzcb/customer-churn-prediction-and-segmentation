@@ -1,6 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 import pandas as pd
+import textwrap
 
 
 # ============================================================
@@ -59,7 +60,9 @@ def plot_categorical_distributions(df: pd.DataFrame, features: list):
         )
         ax.set_xlabel(feature, fontsize=10)
         ax.set_ylabel("Number of Customers", fontsize=10)
-        ax.tick_params(axis="x", rotation=0)
+        #ax.tick_params(axis="x", rotation=0)
+        labels = [textwrap.fill(label.get_text(), width=12) for label in ax.get_xticklabels()]
+        ax.set_xticklabels(labels, rotation=0, fontsize=10)
 
         # Add metric text annotations to bars
         for i, label in enumerate(counts.index):
@@ -139,7 +142,9 @@ def plot_categorical_churn_rates(df: pd.DataFrame, features: list, target: str):
         )
         ax.set_xlabel(feature, fontsize=10)
         ax.set_ylabel("Churn Rate (%)", fontsize=10)
-        ax.tick_params(axis="x", rotation=0)
+        #ax.tick_params(axis="x", rotation=0)
+        labels = [textwrap.fill(label.get_text(), width=12) for label in ax.get_xticklabels()]
+        ax.set_xticklabels(labels, rotation=0, fontsize=10)
 
         # Add percentage text annotations above bars
         for i, label in enumerate(churn_rates.index):
