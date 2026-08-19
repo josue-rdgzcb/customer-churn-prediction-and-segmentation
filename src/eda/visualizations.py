@@ -2,6 +2,7 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import textwrap
+import seaborn as sns
 
 
 # ============================================================
@@ -153,7 +154,7 @@ def plot_categorical_churn_rates(df: pd.DataFrame, features: list, target: str):
             ax.text(
                 i,
                 rate + (churn_rates.max() * 0.01),
-                f"{rate:.1f}%",
+                f"{rate:.2f}%",
                 ha="center",
                 va="bottom",
                 fontsize=10,
@@ -255,6 +256,92 @@ def plot_numerical_distributions(df: pd.DataFrame, features: list, bins: int):
 
     # Clean up and hide any unused remaining axes in the grid
     for idx in range(len(valid_features), len(axes)):
+        fig.delaxes(axes[idx])
+
+    plt.tight_layout()
+    plt.show()
+
+# ============================================================
+# Continuous vs. Categorical Distributions
+# ============================================================
+
+def plot_continuous_by_categorical(df: pd.DataFrame, continuous_features: list, categorical_feature: str):
+    """Plot boxplots with overlaid swarm/strip indications for continuous features grouped by a categorical variable.
+
+    Generates stratified distributions for each continuous column in the features list
+    against a common target categorical baseline in a 2-column grid.
+
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        The source DataFrame.
+    continuous_features : list
+        List of continuous column names to plot on the Y-axis.
+    categorical_feature : str
+        The categorical column name used for grouping on the X-axis.
+    """
+    # Filter out features that are not in the DataFrame
+    if categorical_feature not in df.columns:
+        print(f"Warning: Categorical feature '{categorical_feature}' not found in DataFrame.")
+        return
+
+    valid_continuous = [f for f in continuous_features if f in df.columns]
+
+    if not valid_continuous:
+        print("Warning: No valid continuous features found to plot.")
+        return
+
+    # Calculate layout dimensions (always 2 columns)
+    n_cols = 2
+    n_rows = math.ceil(len(valid_continuous) / n_cols)
+
+    # Initialize grid figure
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5 * n_rows))
+
+    # Safely flatten axes regardless of grid dimensions ---
+    if hasattr(axes, "flatten"):
+        axes = axes.flatten()
+    else:
+        import numpy as np
+
+        axes = np.atleast_1d(axes)
+
+
+    # Iterate through continuous features and assign each to a specific subplot axis
+    for idx, cont_feature in enumerate(valid_continuous):
+        ax = axes[idx]
+
+        # Plot distribution using seaborn boxplot
+        sns.boxplot(
+            data=df,
+            x=categorical_feature,
+            y=cont_feature,
+            ax=ax,
+            hue=categorical_feature,  
+            legend=False,             
+            palette=["#1f77b4", "#ff7f0e"],
+            fliersize=4,
+            width=0.5
+        )
+
+        # Formatting titles and labels
+        ax.set_title(
+            f"{cont_feature.capitalize()} Distribution by {categorical_feature.capitalize()}",
+            fontsize=12,
+            pad=15,
+        )
+        ax.set_xlabel(categorical_feature.capitalize(), fontsize=10)
+        ax.set_ylabel(cont_feature.capitalize(), fontsize=10)
+        
+        # Format X-axis ticks to handle long category texts neatly
+        ticks = ax.get_xticks()
+        ax.set_xticks(ticks) 
+        
+        labels = [textwrap.fill(label.get_text(), width=12) for label in ax.get_xticklabels()]
+        ax.set_xticklabels(labels, rotation=0, fontsize=10)
+
+    # Clean up and hide any unused remaining axes in the grid
+    for idx in range(len(valid_continuous), len(axes)):
         fig.delaxes(axes[idx])
 
     plt.tight_layout()
