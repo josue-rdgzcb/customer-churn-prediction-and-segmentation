@@ -113,7 +113,7 @@ def plot_categorical_churn_rates(df: pd.DataFrame, features: list, target: str):
     if not valid_features or target not in df.columns:
         print("Warning: No valid features or target found to plot.")
         return
-
+    
     # Calculate layout dimensions (always 2 columns)
     n_cols = 2
     n_rows = math.ceil(len(valid_features) / n_cols)
@@ -121,11 +121,17 @@ def plot_categorical_churn_rates(df: pd.DataFrame, features: list, target: str):
     # Initialize grid figure
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5 * n_rows))
 
-    # Ensure axes is a flat array even if there is only 1 row or 1 plot
-    if n_rows == 1:
-        axes = axes.flatten() if len(valid_features) > 1 else [axes]
-    else:
+    # Safely flatten axes regardless of grid dimensions ---
+    if hasattr(axes, "flatten"):
         axes = axes.flatten()
+    else:
+        import numpy as np
+
+        axes = np.atleast_1d(axes)
+
+    # Calculate layout dimensions (always 2 columns)
+    n_cols = 2
+    n_rows = math.ceil(len(valid_features) / n_cols)
 
     # Iterate through features and assign each to a specific subplot axis
     for idx, feature in enumerate(valid_features):
