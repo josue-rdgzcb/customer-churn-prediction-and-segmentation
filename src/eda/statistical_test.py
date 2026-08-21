@@ -66,3 +66,108 @@ def chi_square_analysis(df: pd.DataFrame, features: list, target: str) -> pd.Dat
         })
 
     return pd.DataFrame(results)
+
+
+# ============================================================
+# Mann-Whitney U Test and Effect size
+# ============================================================
+
+from scipy.stats import mannwhitneyu
+import pandas as pd
+import numpy as np
+
+
+def rank_biserial_correlation(u_stat, n1, n2):
+    """
+    Calculate the rank-biserial correlation effect size.
+
+    Parameters
+    ----------
+    u_stat : float
+        Mann-Whitney U statistic for the first group.
+    n1 : int
+        Number of observations in the first group.
+    n2 : int
+        Number of observations in the second group.
+
+    Returns
+    -------
+    float
+        Rank-biserial correlation coefficient.
+    """
+    return (2 * u_stat) / (n1 * n2) - 1
+
+
+def effect_size_strength(r):
+    """
+    Classify the effect size according to Cohen's thresholds.
+
+    Parameters
+    ----------
+    r : float
+        Rank-biserial correlation coefficient.
+
+    Returns
+    -------
+    str
+        Effect size interpretation.
+    """
+    r = abs(r)
+
+    if r < 0.10:
+        return "Muy pequeño"
+    elif r < 0.30:
+        return "Pequeño"
+    elif r < 0.50:
+        return "Moderado"
+    else:
+        return "Grande"
+
+
+def mann_whitney_analysis(df: pd.DataFrame, features: list, target: str) -> pd.DataFrame:
+    """
+    Perform Mann-Whitney U tests for numerical features against a binary target.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset containing the features and target variable.
+    features : list
+        List of numerical feature names to analyze.
+    target : str
+        Name of the binary target variable.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing the U statistic, p-value, rank-biserial correlation,
+        and effect size interpretation for each feature.
+    """
+    results = []
+
+    for feature in features:
+        # Separate observations according to the target groups
+        group_no = df.loc[df[target] == 0, feature].dropna()
+        group_yes = df.loc[df[target] == 1, feature].dropna()
+
+        # Perform two-sided Mann-Whitney U test
+        u_stat, p_value = mannwhitneyu(
+            group_no,
+            group_yes,
+            alternative="two-sided"
+        )
+
+        # Calculate rank-biserial correlation
+        n1 = len(group_no)
+        n2 = len(group_yes)
+        r_rb = rank_biserial_correlation(u_stat, n1, n2)
+
+        results.append({
+            "Variable": feature,
+            "U Statistic": u_stat,
+            "p-value": p_value,
+            "Rank-biserial r": r_rb,
+            "Effect Size": effect_size_strength(r_rb)
+        })
+
+    return pd.DataFrame(results)
