@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import textwrap
 import seaborn as sns
+import numpy as np
 
 
 # ============================================================
@@ -177,7 +178,6 @@ def plot_categorical_churn_rates(df: pd.DataFrame, features: list, target: str):
     plt.tight_layout()
     plt.show()
 
-
 # ============================================================
 # Continuous Variable Distributions (Histograms)
 # ============================================================
@@ -185,8 +185,8 @@ def plot_categorical_churn_rates(df: pd.DataFrame, features: list, target: str):
 def plot_numerical_distributions(df: pd.DataFrame, features: list, bins: int):
     """Plot frequency distributions and density curves for specified numerical features in a 2-column grid.
 
-    Generates histograms annotated with mean and median lines to visualize
-    the spread and central tendency of continuous data.
+    Generates histograms annotated with mean, median, and descriptive
+    statistics to visualize the spread and central tendency of continuous data.
 
     Parameters:
     -----------
@@ -194,6 +194,8 @@ def plot_numerical_distributions(df: pd.DataFrame, features: list, bins: int):
         The source DataFrame.
     features : list
         List of numerical column names to plot.
+    bins : int
+        Number of bins used in the histograms.
     """
     # Filter out features that are not in the DataFrame
     valid_features = [f for f in features if f in df.columns]
@@ -209,12 +211,10 @@ def plot_numerical_distributions(df: pd.DataFrame, features: list, bins: int):
     # Initialize grid figure
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5 * n_rows))
 
-    # Safely flatten axes regardless of grid dimensions ---
+    # Safely flatten axes regardless of grid dimensions
     if hasattr(axes, "flatten"):
         axes = axes.flatten()
     else:
-        import numpy as np
-
         axes = np.atleast_1d(axes)
 
     # Iterate through features and assign each to a specific subplot axis
@@ -231,6 +231,14 @@ def plot_numerical_distributions(df: pd.DataFrame, features: list, bins: int):
         mean_val = data.mean()
         median_val = data.median()
 
+        # Calculate descriptive statistics
+        min_val = data.min()
+        p25 = data.quantile(0.25)
+        p50 = data.quantile(0.50)
+        p75 = data.quantile(0.75)
+        p90 = data.quantile(0.90)
+        max_val = data.max()
+
         # Add vertical reference lines for Mean and Median
         ax.axvline(
             mean_val,
@@ -245,6 +253,27 @@ def plot_numerical_distributions(df: pd.DataFrame, features: list, bins: int):
             linestyle="dotted",
             linewidth=2,
             label=f"Median: {median_val:,.1f}",
+        )
+
+        # Add distribution statistics box
+        stats_text = (
+            f"Min: {min_val:,.2f}\n"
+            f"P25: {p25:,.2f}\n"
+            f"P50: {p50:,.2f}\n"
+            f"P75: {p75:,.2f}\n"
+            f"P90: {p90:,.2f}\n"
+            f"Max: {max_val:,.2f}"
+        )
+
+        ax.text(
+            0.98,
+            0.84,
+            stats_text,
+            transform=ax.transAxes,
+            fontsize=9,
+            verticalalignment="top",
+            horizontalalignment="right",
+            bbox=dict(boxstyle="round,pad=0.4", facecolor="white", alpha=0.2),
         )
 
         # Formatting titles, labels and legend
@@ -268,7 +297,7 @@ def plot_numerical_distributions(df: pd.DataFrame, features: list, bins: int):
     plt.show()
 
 # ============================================================
-# Continuous vs. Categorical Distributions
+# Continuous vs. Categorical Distributions (Boxplots)
 # ============================================================
 
 def plot_continuous_by_categorical(df: pd.DataFrame, continuous_features: list, categorical_feature: str):
