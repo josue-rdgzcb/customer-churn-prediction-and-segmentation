@@ -382,3 +382,92 @@ def plot_continuous_by_categorical(df: pd.DataFrame, continuous_features: list, 
     plt.tight_layout()
     plt.show()
 
+
+# ============================================================
+# Churn Rate by Feature Interaction
+# ============================================================
+
+def plot_churn_rate_by_group(
+    df: pd.DataFrame,
+    x_feature: str,
+    hue_feature: str,
+    target: str = "Churn_bool",
+):
+    """Plot churn rate across groups of a feature, separated by another categorical feature.
+
+    Calculates the churn rate for each combination of the specified
+    grouping variables and displays the results as a line plot.
+
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        The source DataFrame.
+    x_feature : str
+        Categorical feature displayed on the x-axis.
+    hue_feature : str
+        Categorical feature used to create separate lines.
+    target : str, default="Churn_bool"
+        Binary target variable used to calculate churn rate.
+    """
+
+    # Validate that all required columns exist in the DataFrame
+    required_features = [x_feature, hue_feature, target]
+    missing_features = [f for f in required_features if f not in df.columns]
+
+    if missing_features:
+        print(
+            f"Warning: The following columns were not found in the DataFrame: "
+            f"{missing_features}"
+        )
+        return
+
+    # Calculate churn rate for each combination of the grouping variables
+    churn_rate = (
+        df.groupby([x_feature, hue_feature], observed=False)[target]
+        .mean()
+        .mul(100)
+        .reset_index()
+    )
+
+    # Create the line plot
+    plt.figure(figsize=(10, 6))
+
+    sns.lineplot(
+        data=churn_rate,
+        x=x_feature,
+        y=target,
+        hue=hue_feature,
+        marker="o",
+        linewidth=2,
+    )
+
+    # Add churn rate values to each data point
+    for _, row in churn_rate.iterrows():
+        plt.text(
+            row[x_feature],
+            row[target] + 1,
+            f"{row[target]:.2f}%",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
+
+    # Format plot
+    plt.title(
+        f"Churn Rate by {x_feature} and {hue_feature}",
+        fontsize=12,
+        pad=15,
+    )
+    plt.xlabel(x_feature, fontsize=10)
+    plt.ylabel("Churn Rate (%)", fontsize=10)
+
+    plt.legend(
+        title=hue_feature,
+        fontsize=9,
+        title_fontsize=9,
+    )
+
+    plt.grid(axis="y", linestyle="--", alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
