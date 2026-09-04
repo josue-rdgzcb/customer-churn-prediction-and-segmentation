@@ -37,11 +37,11 @@ def plot_categorical_distributions(df: pd.DataFrame, features: list):
     # Initialize grid figure
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5 * n_rows))
 
-    # Ensure axes is a flat array even if there is only 1 row or 1 plot
-    if n_rows == 1:
-        axes = axes.flatten() if len(valid_features) > 1 else [axes]
-    else:
+    # Safely flatten axes regardless of grid dimensions
+    if hasattr(axes, "flatten"):
         axes = axes.flatten()
+    else:
+        axes = np.atleast_1d(axes)
 
     # Iterate through features and assign each to a specific subplot axis
     for idx, feature in enumerate(valid_features):
